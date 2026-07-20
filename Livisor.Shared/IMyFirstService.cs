@@ -1,6 +1,6 @@
 using MagicOnion;
 
-namespace MyApp.Shared
+namespace Livisor.Shared
 {
     public interface IMyFirstService : IService<IMyFirstService>
     {

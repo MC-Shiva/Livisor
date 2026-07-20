@@ -1,8 +1,8 @@
 using MagicOnion;
 using MagicOnion.Server;
-using MyApp.Shared;
+using Livisor.Shared;
 
-namespace MyApp.Server.Services;
+namespace Livisor.Server.Services;
 
 // Implements RPC service in the server project.
 // The implementation class must inherit `ServiceBase<IMyFirstService>` and `IMyFirstService`
