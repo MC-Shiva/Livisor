@@ -1,0 +1,3 @@
+[submodule "Livisor.Client"]
+	path = Livisor.Client
+	url = git@github.com:MC-Shiva/Livisor.Client.git

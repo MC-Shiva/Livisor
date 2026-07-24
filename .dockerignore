@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+.gitattributes
+ 
+# build
+.artifacts/
+**/.artifacts/
+ 
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates 
+
+# OS
+.DS_Store
+Thumbs.db
+ 
+# log / tmp
+*.log
+*.tmp
+*.bak
+ 
+# env
+.env
+*.pfx
+*.key
+
+# not used in Dockerfile
+Livisor.Client/
+
+# .NET local build outputs
+**/bin/
+**/obj/
+
