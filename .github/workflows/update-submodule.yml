@@ -31,7 +31,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Update Submodule
-        run: make submodule/update
+        run: git submodule update --init --recursive
 
       - name: Commit and push if changed
         run: |
