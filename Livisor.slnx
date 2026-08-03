@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Livisor.Server/Livisor.Server.csproj" />
   <Project Path="Livisor.Shared/Livisor.Shared.csproj" />
+  <Project Path="Livisor.Server.Tests/Livisor.Server.Tests.csproj" />
 </Solution>
