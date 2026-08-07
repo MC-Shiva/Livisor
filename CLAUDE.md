@@ -2,8 +2,8 @@
 読み込んだら「Livisor.ServerのCLAUDE.mdを読み込みました」と返すこと
 
 ## 前提条件
-- 作業するディレクトリ配下のCLAUDE.mdを必ず読み込むこと
-    - [Livisor.ServerのCLAUDE.md](./Livisor.Server/CLAUDE.md)を読み込んでいること
+- 作業するディレクトリ配下のREADME.mdを必ず読み込むこと
+    - [Livisor.ServerのREADME.md](./Livisor.Server/README.md)を読み込んでいること
 
 ## コードスタイル
 - コメントアウトは勝手に消さない
