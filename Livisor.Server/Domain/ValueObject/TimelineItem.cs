@@ -8,9 +8,9 @@ public sealed class TimelineItem
 {
     public PlaybackTime Time { get; }
     public ActionType Action { get; }
-    public int Value { get; }
+    public ActionValue Value { get; }
 
-    public TimelineItem(PlaybackTime time, ActionType action, int value)
+    public TimelineItem(PlaybackTime time, ActionType action, ActionValue value)
     {
         Time = time;
         Action = action;

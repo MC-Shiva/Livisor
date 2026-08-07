@@ -5,6 +5,8 @@ namespace Livisor.Shared.DTO
     /// <summary>
     /// タイムライン上の 1 アクション。Issue #2 で確定した JSON 配列の 1 要素に対応する。
     /// 例: { "time": "10:00:00:00", "action": { "start": 1 } }
+    /// 例: { "time": "10:00:00:00", "action": { "start": true } }
+    /// 例: { "time": "10:00:00:00", "action": { "cue": "intro" } }
     /// </summary>
     [MessagePackObject]
     public class TimelineAction
@@ -17,8 +19,8 @@ namespace Livisor.Shared.DTO
         [Key(1)]
         public ActionType Action { get; set; }
 
-        /// <summary>操作に付随する値。start=1 / volumeChange=10 など。</summary>
+        /// <summary>操作に付随する値。start=1 / volumeChange=10 / start=true / cue="intro" など。</summary>
         [Key(2)]
-        public int Value { get; set; }
+        public ActionValue Value { get; set; }
     }
 }
