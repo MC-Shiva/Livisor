@@ -1,7 +1,7 @@
 using Livisor.Server.Domain;
 using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
-using Livisor.Shared.DTO;
+using Livisor.Shared.Common;
 
 namespace Livisor.Server.Tests.Domain;
 

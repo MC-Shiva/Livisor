@@ -2,7 +2,7 @@ using Livisor.Server.Application.UseCases;
 using Livisor.Server.Domain.Cache;
 using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
-using Livisor.Shared.DTO;
+using Livisor.Shared.Common;
 using NSubstitute;
 
 namespace Livisor.Server.Tests.Application;

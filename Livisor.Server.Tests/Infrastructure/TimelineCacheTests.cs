@@ -1,7 +1,7 @@
 using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
 using Livisor.Server.Infrastructure;
-using Livisor.Shared.DTO;
+using Livisor.Shared.Common;
 using Xunit.Abstractions;
 
 namespace Livisor.Server.Tests.Infrastructure;

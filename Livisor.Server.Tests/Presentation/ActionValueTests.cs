@@ -1,3 +1,4 @@
+using Livisor.Shared.Common;
 using Livisor.Shared.DTO;
 using MessagePack;
 

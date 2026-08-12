@@ -1,7 +1,9 @@
-namespace Livisor.Server.Domain.ValueObject;
+using System;
 
-// "HH:mm:ss:ff"（時:分:秒:センチ秒）を表す値オブジェクト。
-// 生成(Parse)時に妥当性を保証するため、これ以降は常に正しい時刻として扱える。
+namespace Livisor.Shared.Common;
+
+// "HH:mm:ss:ff"（時:分:秒:センチ秒）を表す値オブジェクト。Client / Server 共通の時刻ルール。
+// 生成(Parse/TryParse)時に妥当性を保証するため、これ以降は常に正しい時刻として扱える。
 public readonly struct PlaybackTime
 {
     public int Hours { get; }
@@ -23,11 +25,22 @@ public readonly struct PlaybackTime
     // ワイヤ表記 "HH:mm:ss:ff" へ戻す。
     public string ToRawString() => $"{Hours:D2}:{Minutes:D2}:{Seconds:D2}:{Centiseconds:D2}";
 
-    // "HH:mm:ss:ff" をパースする。不正なら DomainException。
+    // "HH:mm:ss:ff" をパースする。不正なら FormatException。
     public static PlaybackTime Parse(string value)
     {
+        if (!TryParse(value, out var result))
+            throw new FormatException($"invalid time format: '{value}' (expected HH:mm:ss:ff).");
+
+        return result;
+    }
+
+    // "HH:mm:ss:ff" のパースを試みる。不正なら false。
+    public static bool TryParse(string value, out PlaybackTime result)
+    {
+        result = default;
+
         if (string.IsNullOrEmpty(value))
-            throw new DomainException("time must not be empty.");
+            return false;
 
         var parts = value.Split(':');
         if (parts.Length != 4
@@ -36,9 +49,10 @@ public readonly struct PlaybackTime
             || !int.TryParse(parts[2], out var s) || s is < 0 or > 59
             || !int.TryParse(parts[3], out var ff) || ff is < 0 or > 99)
         {
-            throw new DomainException($"invalid time format: '{value}' (expected HH:mm:ss:ff).");
+            return false;
         }
 
-        return new PlaybackTime(h, m, s, ff);
+        result = new PlaybackTime(h, m, s, ff);
+        return true;
     }
 }

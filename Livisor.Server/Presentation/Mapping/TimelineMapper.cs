@@ -1,6 +1,7 @@
 using Livisor.Server.Domain;
 using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
+using Livisor.Shared.Common;
 using Livisor.Shared.DTO;
 
 namespace Livisor.Server.Presentation.Mapping;
@@ -20,7 +21,7 @@ public static class TimelineMapper
             if (action is null)
                 throw new DomainException("action must not be null.");
 
-            items.Add(new TimelineItem(PlaybackTime.Parse(action.Time), action.Action, action.Value));
+            items.Add(new TimelineItem(PlaybackTimeParser.Parse(action.Time), action.Action, action.Value));
         }
 
         return Timeline.Create(items);

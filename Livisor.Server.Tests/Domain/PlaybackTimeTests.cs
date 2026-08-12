@@ -1,5 +1,6 @@
 using Livisor.Server.Domain;
 using Livisor.Server.Domain.ValueObject;
+using Livisor.Shared.Common;
 
 namespace Livisor.Server.Tests.Domain;
 
@@ -44,7 +45,7 @@ public class PlaybackTimeTests
     [InlineData("")]
     public void Parse_NullOrEmpty_ThrowsDomainException(string? value)
     {
-        Assert.Throws<DomainException>(() => PlaybackTime.Parse(value));
+        Assert.Throws<DomainException>(() => PlaybackTimeParser.Parse(value));
     }
 
     [Theory]
@@ -53,7 +54,7 @@ public class PlaybackTimeTests
     [InlineData("10-30-45-50")]      // 区切り文字が違う
     public void Parse_WrongSegmentCount_ThrowsDomainException(string value)
     {
-        Assert.Throws<DomainException>(() => PlaybackTime.Parse(value));
+        Assert.Throws<DomainException>(() => PlaybackTimeParser.Parse(value));
     }
 
     [Theory]
@@ -67,7 +68,19 @@ public class PlaybackTimeTests
     [InlineData("00:00:00:-1")]  // ff 負数
     public void Parse_OutOfRangeField_ThrowsDomainException(string value)
     {
-        Assert.Throws<DomainException>(() => PlaybackTime.Parse(value));
+        Assert.Throws<DomainException>(() => PlaybackTimeParser.Parse(value));
+    }
+
+    // --- TryParse 異常系 ---
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("10:30:45")]
+    [InlineData("24:00:00:00")]
+    public void TryParse_InvalidValue_ReturnsFalse(string? value)
+    {
+        Assert.False(PlaybackTime.TryParse(value, out _));
     }
 
     // --- TotalSeconds:正常系 ---

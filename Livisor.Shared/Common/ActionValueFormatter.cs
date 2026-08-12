@@ -1,7 +1,7 @@
 using MessagePack;
 using MessagePack.Formatters;
 
-namespace Livisor.Shared.DTO
+namespace Livisor.Shared.Common
 {
     /// <summary>
     /// <see cref="ActionValue"/> を MessagePack 上の生プリミティブ（int / bool / string）として

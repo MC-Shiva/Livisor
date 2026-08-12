@@ -1,4 +1,4 @@
-namespace Livisor.Shared.DTO
+namespace Livisor.Shared.Common
 {
     /// <summary>
     /// タイムライン上で実行する操作の種類。

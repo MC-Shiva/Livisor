@@ -1,7 +1,7 @@
 using System;
 using MessagePack;
 
-namespace Livisor.Shared.DTO
+namespace Livisor.Shared.Common
 {
     /// <summary>
     /// <see cref="ActionValue"/> が保持する値の種類。
