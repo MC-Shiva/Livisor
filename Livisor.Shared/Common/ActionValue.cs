@@ -1,5 +1,4 @@
 using System;
-using MessagePack;
 
 namespace Livisor.Shared.Common
 {
@@ -15,11 +14,10 @@ namespace Livisor.Shared.Common
 
     /// <summary>
     /// タイムラインアクションに付随する値。数値 / 真偽値 / 文字列のいずれか 1 つを保持する。
-    /// ワイヤ上（MessagePack）では <see cref="ActionValueFormatter"/> により生プリミティブとして
-    /// やり取りする（例: 1 / true / "intro"）。
-    /// 例: { "action": { "start": 1 } } / { "action": { "start": true } } / { "action": { "cue": "intro" } }
+    /// 例: 1 / true / "intro"
+    /// 単体では MessagePack 化できない。ワイヤ形式（DTO.TimelineAction.Value 経由での
+    /// 生プリミティブ直列化）は Livisor.Shared.DTO 側の関心であり、この型は関与しない。
     /// </summary>
-    [MessagePackFormatter(typeof(ActionValueFormatter))]
     public readonly struct ActionValue : IEquatable<ActionValue>
     {
         public ActionValueKind Kind { get; }

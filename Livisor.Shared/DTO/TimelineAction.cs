@@ -22,6 +22,7 @@ namespace Livisor.Shared.DTO
 
         /// <summary>操作に付随する値。start=1 / volumeChange=10 / start=true / cue="intro" など。</summary>
         [Key(2)]
+        [MessagePackFormatter(typeof(ActionValueFormatter))]
         public ActionValue Value { get; set; }
     }
 }

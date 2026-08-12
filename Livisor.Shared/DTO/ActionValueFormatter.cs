@@ -1,11 +1,12 @@
+using Livisor.Shared.Common;
 using MessagePack;
 using MessagePack.Formatters;
 
-namespace Livisor.Shared.Common
+namespace Livisor.Shared.DTO
 {
     /// <summary>
     /// <see cref="ActionValue"/> を MessagePack 上の生プリミティブ（int / bool / string）として
-    /// 読み書きするフォーマッタ。<see cref="ActionValue"/> に付けた
+    /// 読み書きするフォーマッタ。<see cref="TimelineAction.Value"/> に付けた
     /// <see cref="MessagePackFormatterAttribute"/> から解決されるため、Resolver への登録は不要。
     /// </summary>
     public sealed class ActionValueFormatter : IMessagePackFormatter<ActionValue>
