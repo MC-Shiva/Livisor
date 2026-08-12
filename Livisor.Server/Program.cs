@@ -8,8 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMagicOnion();
 
 // --- レイヤー配線（Composition Root）---
-// Infrastructure: room ごとの直近タイムラインをメモリにキャッシュ（遅延参加者へ再送）。
-builder.Services.AddSingleton<ITimelineCache, TimelineCache>();
+// Infrastructure: room（Room集約）をメモリにキャッシュ（遅延参加者へ再送）。
+builder.Services.AddSingleton<IRoomCache, RoomCache>();
 // Application: ユースケース。
 builder.Services.AddTransient<JoinRoomUseCase>();
 builder.Services.AddTransient<BroadcastTimelineUseCase>();

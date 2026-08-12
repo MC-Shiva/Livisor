@@ -1,7 +1,7 @@
 using Grpc.Core;
 using Livisor.Server.Application.UseCases;
 using Livisor.Server.Domain;
-using Livisor.Server.Domain.Entity;
+using Livisor.Server.Domain.ValueObject;
 using Livisor.Server.Presentation.Mapping;
 using Livisor.Shared.DTO;
 using Livisor.Shared.Hubs;
@@ -19,7 +19,7 @@ public class TimelineHub : StreamingHubBase<ITimelineHub, ITimelineHubReceiver>,
     private readonly BroadcastTimelineUseCase _broadcast;
 
     private IGroup<ITimelineHubReceiver>? _group;
-    private string _roomId = string.Empty;
+    private RoomId? _roomId; // 未参加なら null
 
     public TimelineHub(JoinRoomUseCase joinRoom, BroadcastTimelineUseCase broadcast)
     {
@@ -30,20 +30,33 @@ public class TimelineHub : StreamingHubBase<ITimelineHub, ITimelineHubReceiver>,
     // room（グループ）に参加する。
     public async ValueTask JoinAsync(string roomId)
     {
-        _roomId = roomId;
+        RoomId id;
+        try
+        {
+            id = RoomId.Create(roomId);
+        }
+        catch (DomainException ex)
+        {
+            throw new ReturnStatusException(StatusCode.InvalidArgument, ex.Message);
+        }
+
+        _roomId = id;
         _group = await Group.AddAsync(roomId);
 
-        // 遅延参加対応: 蓄積済みのタイムライン一覧を参加者にだけ順に再送する。現在時刻を基準とするため即時再生される。
-        var existing = _joinRoom.Join(roomId);
-        foreach (var t in existing)
+        // 遅延参加対応: 現在配信中のタイムラインがあれば参加者にだけ再送する。現在時刻を基準とするため即時再生される。
+        var current = _joinRoom.Join(id);
+        if (current is not null)
         {
-            _group.Single(ConnectionId).OnBroadcastTimeline(TimelineMapper.ToDto(t), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            _group.Single(ConnectionId).OnBroadcastTimeline(TimelineMapper.ToDto(current), DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         }
     }
 
     // タイムラインを配信する。
     public ValueTask BroadcastTimelineAsync(TimelineAction[] actions)
     {
+        if (_roomId is null)
+            throw new ReturnStatusException(StatusCode.FailedPrecondition, "join a room before broadcasting.");
+
         Timeline timeline;
         try
         {

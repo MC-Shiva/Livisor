@@ -22,6 +22,10 @@ namespace Livisor.Shared.Common
         // 先頭アクション基準の相対再生などに使う総秒数。
         public double TotalSeconds => Hours * 3600 + Minutes * 60 + Seconds + Centiseconds / 100.0;
 
+        // 整数での順序比較・同値判定に使う総センチ秒。23:59:59:99 で 8,639,999。
+        // TotalSeconds(double)は二進で正確に表せない場合があるため、順序判定にはこちらを使う。
+        public int TotalCentiseconds => ((Hours * 60 + Minutes) * 60 + Seconds) * 100 + Centiseconds;
+
         // ワイヤ表記 "HH:mm:ss:ff" へ戻す。
         public string ToRawString() => $"{Hours:D2}:{Minutes:D2}:{Seconds:D2}:{Centiseconds:D2}";
 

@@ -10,30 +10,30 @@ namespace Livisor.Server.Tests.Application;
 public class JoinRoomUseCaseTests
 {
     [Fact]
-    public void Join_RoomExists_ReturnsAllTimelines()
+    public void Join_RoomExists_ReturnsCurrentTimeline()
     {
-        var cache = Substitute.For<ITimelineCache>();
+        var cache = Substitute.For<IRoomCache>();
+        var roomId = RoomId.Create("room1");
         var t1 = Timeline.Create([new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1)]);
-        var t2 = Timeline.Create([new TimelineItem(PlaybackTime.Parse("11:00:00:00"), ActionType.Stop, 1)]);
-        cache.GetAll("room1").Returns([t1, t2]);
+        var room = Room.Create(roomId).SetCurrent(t1);
+        cache.Get(roomId).Returns(room);
         var useCase = new JoinRoomUseCase(cache);
 
-        var result = useCase.Join("room1");
+        var result = useCase.Join(roomId);
 
-        Assert.Equal(2, result.Count);
-        Assert.Same(t1, result[0]);
-        Assert.Same(t2, result[1]);
+        Assert.Same(t1, result);
     }
 
     [Fact]
-    public void Join_RoomNotExists_ReturnsEmpty()
+    public void Join_RoomNotExists_ReturnsNull()
     {
-        var cache = Substitute.For<ITimelineCache>();
-        cache.GetAll("room-none").Returns([]);
+        var cache = Substitute.For<IRoomCache>();
+        var roomId = RoomId.Create("room-none");
+        cache.Get(roomId).Returns(Room.Create(roomId));
         var useCase = new JoinRoomUseCase(cache);
 
-        var result = useCase.Join("room-none");
+        var result = useCase.Join(roomId);
 
-        Assert.Empty(result);
+        Assert.Null(result);
     }
 }

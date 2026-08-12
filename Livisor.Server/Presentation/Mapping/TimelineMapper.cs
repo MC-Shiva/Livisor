@@ -1,5 +1,4 @@
 using Livisor.Server.Domain;
-using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
 using Livisor.Shared.Common;
 using Livisor.Shared.DTO;

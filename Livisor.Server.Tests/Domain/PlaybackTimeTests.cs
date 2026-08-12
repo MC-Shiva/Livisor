@@ -98,6 +98,21 @@ public class PlaybackTimeTests
         Assert.Equal(expected, t.TotalSeconds, precision: 10);
     }
 
+    // --- TotalCentiseconds:正常系 ---
+
+    [Theory]
+    [InlineData("00:00:00:00", 0)]
+    [InlineData("00:00:00:01", 1)]
+    [InlineData("00:00:01:00", 100)]
+    [InlineData("00:01:00:00", 6000)]
+    [InlineData("01:00:00:00", 360000)]
+    [InlineData("23:59:59:99", 8639999)]
+    public void TotalCentiseconds_ReturnsCorrectValue(string input, int expected)
+    {
+        var t = PlaybackTime.Parse(input);
+        Assert.Equal(expected, t.TotalCentiseconds);
+    }
+
     // --- ToRawString:正常系 ---
     // Parseされた後にしかStringにできない
 
