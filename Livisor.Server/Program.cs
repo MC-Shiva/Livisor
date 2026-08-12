@@ -1,7 +1,18 @@
+using Livisor.Server.Application.UseCases;
+using Livisor.Server.Domain.Cache;
+using Livisor.Server.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddMagicOnion();
+
+// --- レイヤー配線（Composition Root）---
+// Infrastructure: room（Room集約）をメモリにキャッシュ（遅延参加者へ再送）。
+builder.Services.AddSingleton<IRoomCache, RoomCache>();
+// Application: ユースケース。
+builder.Services.AddTransient<JoinRoomUseCase>();
+builder.Services.AddTransient<BroadcastTimelineUseCase>();
 
 var app = builder.Build();
 

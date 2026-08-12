@@ -1,6 +1,6 @@
 using MagicOnion;
 
-namespace Livisor.Shared
+namespace Livisor.Shared.UnaryServices
 {
     public interface IMyFirstService : IService<IMyFirstService>
     {

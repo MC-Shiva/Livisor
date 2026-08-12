@@ -1,19 +1,8 @@
 ## Livisor
+Livisorのリポジトリ
 
+基本的にLivisor.Client、Livisor.ServerのREADME.mdに詳しいことを書くようにしています。
 
-## サーバの起動方法
+## サーバーの起動方法
 
-- dotnetで起動
-```
-make server/run
-```
-
-- イメージをビルド
-```
-make docker/server/build
-```
-
-- イメージをビルドした上で起動
-```
-make docker/server/run
-```
+[サーバーの起動方法はこちら](./Livisor.Server/Docs/make.md)
