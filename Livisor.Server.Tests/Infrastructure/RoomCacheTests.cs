@@ -10,9 +10,9 @@ public class RoomCacheTests(ITestOutputHelper output)
 {
     private readonly RoomCache _cache = new();
 
-    private static Timeline BuildTimeline(string time = "10:00:00:00", ActionType action = ActionType.Start)
+    private static Timeline BuildTimeline(string time = "10:00:00:00", ActionType action = ActionType.Play)
     {
-        return Timeline.Create([new TimelineItem(PlaybackTime.Parse(time), action, 1)]);
+        return Timeline.Create([new TimelineItem(PlaybackTime.Parse(time), action, true)]);
     }
 
     [Fact]

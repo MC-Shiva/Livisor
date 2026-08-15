@@ -15,7 +15,7 @@ public class ActionValueTests
     [Fact]
     public void Roundtrip_Number_PreservesKindAndValue()
     {
-        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Start, Value = 1 };
+        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.VolumeChange, Value = 1 };
 
         var bytes = MessagePackSerializer.Serialize(action);
         var restored = MessagePackSerializer.Deserialize<TimelineAction>(bytes);
@@ -27,7 +27,7 @@ public class ActionValueTests
     [Fact]
     public void Roundtrip_Bool_PreservesKindAndValue()
     {
-        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Start, Value = true };
+        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Play, Value = true };
 
         var bytes = MessagePackSerializer.Serialize(action);
         var restored = MessagePackSerializer.Deserialize<TimelineAction>(bytes);
@@ -37,9 +37,22 @@ public class ActionValueTests
     }
 
     [Fact]
+    public void Roundtrip_BoolFalse_PreservesKindAndValue()
+    {
+        // play=false（停止）は bool の既定値と紛れやすいため、Kind と値の両方を検証する。
+        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Play, Value = false };
+
+        var bytes = MessagePackSerializer.Serialize(action);
+        var restored = MessagePackSerializer.Deserialize<TimelineAction>(bytes);
+
+        Assert.Equal(ActionValueKind.Bool, restored.Value.Kind);
+        Assert.False(restored.Value.Bool);
+    }
+
+    [Fact]
     public void Roundtrip_Text_PreservesKindAndValue()
     {
-        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Start, Value = "intro" };
+        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Play, Value = "intro" };
 
         var bytes = MessagePackSerializer.Serialize(action);
         var restored = MessagePackSerializer.Deserialize<TimelineAction>(bytes);
@@ -51,7 +64,7 @@ public class ActionValueTests
     [Fact]
     public void Roundtrip_TimelineAction_PreservesValue()
     {
-        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Start, Value = true };
+        var action = new TimelineAction { Time = "10:00:00:00", Action = ActionType.Play, Value = true };
 
         var bytes = MessagePackSerializer.Serialize(action);
         var restored = MessagePackSerializer.Deserialize<TimelineAction>(bytes);
