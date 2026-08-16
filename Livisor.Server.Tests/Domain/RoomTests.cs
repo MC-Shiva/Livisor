@@ -7,7 +7,7 @@ namespace Livisor.Server.Tests.Domain;
 public class RoomTests
 {
     private static Timeline BuildTimeline(string time = "10:00:00:00")
-        => Timeline.Create([new TimelineItem(PlaybackTime.Parse(time), ActionType.Start, 1)]);
+        => Timeline.Create([new TimelineItem(PlaybackTime.Parse(time), ActionType.Play, true)]);
 
     [Fact]
     public void Create_ReturnsRoomWithNoCurrentTimeline()

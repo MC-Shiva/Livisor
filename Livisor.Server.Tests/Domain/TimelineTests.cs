@@ -21,7 +21,7 @@ public class TimelineTests
     [Fact]
     public void Create_WithItems_ReturnsTimeline()
     {
-        var items = new[] { new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1) };
+        var items = new[] { new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true) };
         var timeline = Timeline.Create(items);
         Assert.Equal(items, timeline.Items);
     }
@@ -31,9 +31,9 @@ public class TimelineTests
     {
         var items = new[]
         {
-            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1),
+            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true),
             new TimelineItem(PlaybackTime.Parse("10:00:03:00"), ActionType.VolumeChange, 10),
-            new TimelineItem(PlaybackTime.Parse("10:00:06:00"), ActionType.Stop, 1),
+            new TimelineItem(PlaybackTime.Parse("10:00:06:00"), ActionType.Play, false),
         };
         var timeline = Timeline.Create(items);
         Assert.Equal(3, timeline.Items.Count);
@@ -46,9 +46,9 @@ public class TimelineTests
     {
         var items = new[]
         {
-            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1),
+            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true),
             new TimelineItem(PlaybackTime.Parse("10:00:03:00"), ActionType.VolumeChange, 10),
-            new TimelineItem(PlaybackTime.Parse("10:00:06:00"), ActionType.Stop, 1),
+            new TimelineItem(PlaybackTime.Parse("10:00:06:00"), ActionType.Play, false),
         };
 
         var timeline = Timeline.Create(items);
@@ -62,7 +62,7 @@ public class TimelineTests
         // 同時刻の複数操作は正当（狭義単調増加ではなく広義単調増加を許可する）。
         var items = new[]
         {
-            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1),
+            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true),
             new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.VolumeChange, 10),
         };
 
@@ -76,8 +76,8 @@ public class TimelineTests
     {
         var items = new[]
         {
-            new TimelineItem(PlaybackTime.Parse("10:00:06:00"), ActionType.Stop, 1),
-            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1),
+            new TimelineItem(PlaybackTime.Parse("10:00:06:00"), ActionType.Play, false),
+            new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true),
         };
 
         Assert.Throws<DomainException>(() => Timeline.Create(items));

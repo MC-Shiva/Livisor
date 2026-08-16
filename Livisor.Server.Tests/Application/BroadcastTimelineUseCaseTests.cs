@@ -14,7 +14,7 @@ public class BroadcastTimelineUseCaseTests
         var cache = Substitute.For<IRoomCache>();
         var useCase = new BroadcastTimelineUseCase(cache);
         var roomId = RoomId.Create("room1");
-        var timeline = Timeline.Create([new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1)]);
+        var timeline = Timeline.Create([new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true)]);
 
         useCase.Broadcast(roomId, timeline);
 

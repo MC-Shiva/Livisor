@@ -5,8 +5,7 @@ namespace Livisor.Shared.Common
     /// </summary>
     public enum ActionType
     {
-        Start,          // "start"
-        Stop,           // "stop"
+        Play,           // "play"（true=再生 / false=停止）
         VolumeChange,   // "volumeChange"
     }
 }

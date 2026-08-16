@@ -14,7 +14,7 @@ public class JoinRoomUseCaseTests
     {
         var cache = Substitute.For<IRoomCache>();
         var roomId = RoomId.Create("room1");
-        var t1 = Timeline.Create([new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Start, 1)]);
+        var t1 = Timeline.Create([new TimelineItem(PlaybackTime.Parse("10:00:00:00"), ActionType.Play, true)]);
         var room = Room.Create(roomId).SetCurrent(t1);
         cache.Get(roomId).Returns(room);
         var useCase = new JoinRoomUseCase(cache);
