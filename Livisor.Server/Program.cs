@@ -1,8 +1,18 @@
 using Livisor.Server.Application.UseCases;
 using Livisor.Server.Domain.Cache;
 using Livisor.Server.Infrastructure;
+using ZLogger;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ロギング: 既定プロバイダを外し、ZLogger のコンソール出力（JSON）に一本化する。
+builder.Logging.ClearProviders();
+builder.Logging.AddZLoggerConsole(options =>
+{
+    // BeginScope で渡した room-id/ConnectionId 等を JSON のトップレベルに出力する。
+    options.IncludeScopes = true;
+    options.UseJsonFormatter();
+});
 
 // Add services to the container.
 builder.Services.AddMagicOnion();
