@@ -1,8 +1,11 @@
 using Livisor.Server.Application.UseCases;
 using Livisor.Server.Domain.Cache;
 using Livisor.Server.Infrastructure;
+using Livisor.Server.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddAppLogging();
 
 // Add services to the container.
 builder.Services.AddMagicOnion();
