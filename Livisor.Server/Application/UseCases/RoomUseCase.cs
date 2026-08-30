@@ -28,7 +28,7 @@ public sealed class RoomUseCase
     public Room Get(RoomId roomId) => _cache.Get(roomId);
 
     // 再生を開始する。開始時刻はサーバーの実時間で確定させる。
-    // クライアントはこの時刻を基準に、自分とサーバーのクロック差を足して予約の発火時刻を求める。
+    // この時刻は、配信時に「どれだけ再生が進んでいたか」を出すために使う（TransportState の式を参照）。
     public Room Play(RoomId roomId)
     {
         // 更新は競合すると再試行されるため、時刻はその外側で1回だけ読む。

@@ -37,7 +37,7 @@ public class TimelineService : ServiceBase<ITimelineService>, ITimelineService
         _logger = logger;
     }
 
-    // クライアントはこの値と自分の時刻の差をクロック差として持ち、再生開始時刻の解釈に使う。
+    // 発火時刻の計算には使わない。時計のズレと往復時間を実測するために使う。
     public UnaryResult<long> GetServerTimeAsync() => new(_clock.UtcNowUnixMs);
 
     public UnaryResult<TransportState> GetTransportAsync(string roomId)
