@@ -1,3 +1,4 @@
+using Livisor.Server.Domain;
 using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
 using Livisor.Shared.Common;
@@ -6,52 +7,117 @@ namespace Livisor.Server.Tests.Domain;
 
 public class RoomTests
 {
-    private static Timeline BuildTimeline(string time = "10:00:00:00")
-        => Timeline.Create([new TimelineItem(PlaybackTime.Parse(time), ActionType.Play, true)]);
+    private static Room NewRoom() => Room.Create(RoomId.Create("room1"));
+
+    private static ScheduledAction BuildAction(string offset = "00:00:05:00")
+        => new(PlaybackTime.Parse(offset), ActionType.VolumeChange, 10);
+
+    private static RoomState BuildState(string key, ActionValue value)
+        => RoomState.Create([new KeyValuePair<string, ActionValue>(key, value)]);
 
     [Fact]
-    public void Create_ReturnsRoomWithNoCurrentTimeline()
+    public void Create_ReturnsStoppedRoomWithoutScheduleOrState()
     {
-        var room = Room.Create(RoomId.Create("room1"));
+        var room = NewRoom();
 
         Assert.Equal("room1", room.Id.Value);
-        Assert.Null(room.Current);
+        Assert.False(room.Transport.Playing);
+        Assert.Null(room.Scheduled);
+        Assert.Empty(room.State.Entries);
     }
 
     [Fact]
-    public void SetCurrent_SetsCurrentTimeline()
+    public void Create_NullId_ThrowsDomainException()
     {
-        var room = Room.Create(RoomId.Create("room1"));
-        var t1 = BuildTimeline("10:00:00:00");
-
-        var updated = room.SetCurrent(t1);
-
-        Assert.Same(t1, updated.Current);
+        Assert.Throws<DomainException>(() => Room.Create(null!));
     }
 
     [Fact]
-    public void SetCurrent_ReplacesPreviousTimeline()
+    public void Play_StartsTransportAtGivenTime()
     {
-        // BroadcastTimelineAsync の1回は「今の演目を丸ごと差し替える」イベントであり、
-        // 過去の演目は残さない。
-        var room = Room.Create(RoomId.Create("room1"));
-        var t1 = BuildTimeline("10:00:00:00");
-        var t2 = BuildTimeline("11:00:00:00");
+        var room = NewRoom().Play(1_000);
 
-        var updated = room.SetCurrent(t1).SetCurrent(t2);
-
-        Assert.Same(t2, updated.Current);
+        Assert.True(room.Transport.Playing);
+        Assert.Equal(1_000, room.Transport.StartedAtUnixMs);
     }
 
     [Fact]
-    public void SetCurrent_DoesNotMutateOriginalInstance()
+    public void Play_KeepsScheduleAndState()
     {
-        // Room は不変。SetCurrent は新しいインスタンスを返し、元のインスタンスは変わらない。
-        var room = Room.Create(RoomId.Create("room1"));
+        var room = NewRoom()
+            .Schedule(BuildAction())
+            .ApplyState(BuildState(RoomStateKeys.HeartRate, 80))
+            .Play(1_000);
 
-        var updated = room.SetCurrent(BuildTimeline());
+        Assert.NotNull(room.Scheduled);
+        Assert.Equal(80, room.State.Entries[RoomStateKeys.HeartRate].Number);
+    }
 
-        Assert.Null(room.Current);
-        Assert.NotNull(updated.Current);
+    [Fact]
+    public void Stop_StopsTransportButKeepsSchedule()
+    {
+        // 予約は相対時間なので、再生し直せば同じ位置で発火する。停止では取り消さない。
+        var action = BuildAction();
+
+        var room = NewRoom().Schedule(action).Play(1_000).Stop();
+
+        Assert.False(room.Transport.Playing);
+        Assert.Same(action, room.Scheduled);
+    }
+
+    [Fact]
+    public void Schedule_ReplacesPreviousAction()
+    {
+        // キューは最大1件。新しい予約は前の予約を置き換える。
+        var first = BuildAction("00:00:05:00");
+        var second = BuildAction("00:00:09:00");
+
+        var room = NewRoom().Schedule(first).Schedule(second);
+
+        Assert.Same(second, room.Scheduled);
+    }
+
+    [Fact]
+    public void Schedule_Null_ThrowsDomainException()
+    {
+        Assert.Throws<DomainException>(() => NewRoom().Schedule(null!));
+    }
+
+    [Fact]
+    public void CancelSchedule_RemovesAction()
+    {
+        var room = NewRoom().Schedule(BuildAction()).CancelSchedule();
+
+        Assert.Null(room.Scheduled);
+    }
+
+    [Fact]
+    public void CancelSchedule_WithoutSchedule_ReturnsSameInstance()
+    {
+        var room = NewRoom();
+
+        Assert.Same(room, room.CancelSchedule());
+    }
+
+    [Fact]
+    public void ApplyState_MergesPatchIntoCurrentState()
+    {
+        var room = NewRoom()
+            .ApplyState(BuildState(RoomStateKeys.Volume, 30))
+            .ApplyState(BuildState(RoomStateKeys.HeartRate, 82));
+
+        Assert.Equal(30, room.State.Entries[RoomStateKeys.Volume].Number);
+        Assert.Equal(82, room.State.Entries[RoomStateKeys.HeartRate].Number);
+    }
+
+    [Fact]
+    public void Play_DoesNotMutateOriginalInstance()
+    {
+        // Room は不変。更新メソッドは新しいインスタンスを返し、元のインスタンスは変わらない。
+        var room = NewRoom();
+
+        room.Play(1_000);
+
+        Assert.False(room.Transport.Playing);
     }
 }
