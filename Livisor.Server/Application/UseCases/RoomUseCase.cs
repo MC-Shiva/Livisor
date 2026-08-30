@@ -13,6 +13,7 @@ namespace Livisor.Server.Application.UseCases;
 // 呼び出し元は2つある。
 //   - ITimelineService(Unary): Get / Play / Stop / Schedule / CancelSchedule
 //   - IRoomStateHub(StreamingHub): Get / ApplyState
+// メソッドが増えて見通しが悪くなったら、呼び出し元ごとに分ける。いまはその必要がない。
 public sealed class RoomUseCase
 {
     private readonly IRoomCache _cache;
