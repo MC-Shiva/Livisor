@@ -37,9 +37,6 @@ public class TimelineService : ServiceBase<ITimelineService>, ITimelineService
         _logger = logger;
     }
 
-    // 発火時刻の計算には使わない。時計のズレと往復時間を実測するために使う。
-    public UnaryResult<long> GetServerTimeAsync() => new(_clock.UtcNowUnixMs);
-
     public UnaryResult<TransportState> GetTransportAsync(string roomId)
         => new(ToDto(_room.Get(ParseRoomId(roomId))));
 

@@ -11,18 +11,6 @@ namespace Livisor.Shared.UnaryServices
     /// </summary>
     public interface ITimelineService : IService<ITimelineService>
     {
-        /// <summary>
-        /// サーバーの現在時刻（UTC ミリ秒）。
-        /// 発火時刻の計算には使わない。<c>Livisor.Shared.DTO.TransportState</c> の式は
-        /// サーバーとクライアントの時計を比べないため、時計を合わせる必要がない。
-        ///
-        /// 用途は測定である。呼んだ前後の自分の時計と比べれば、実際の時計のズレと往復時間が分かる。
-        /// 疎通確認でこの数字を残しておくと、発火がずれたときに原因を切り分けられる。
-        /// 片道遅延まで詰めたくなった場合は、複数回呼んで往復時間が最小のサンプルを採り、
-        /// その半分を引いた値を使う方式へ変えられる。サーバーとワイヤ契約は変えずに済む。
-        /// </summary>
-        UnaryResult<long> GetServerTimeAsync();
-
         /// <summary>現在のトランスポートを取得する。</summary>
         UnaryResult<TransportState> GetTransportAsync(string roomId);
 
