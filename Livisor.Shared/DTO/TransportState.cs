@@ -6,7 +6,8 @@ namespace Livisor.Shared.DTO
     /// 再生トランスポートの現在値。
     /// <c>Playing</c> が true のときだけ、クライアントは次の式で予約アクションの発火時刻を求める。
     ///   発火するクライアント時刻 = StartedAtServerMs + 相対時間 + (クライアント時刻 - サーバー時刻)
-    /// 右辺の括弧はクロック差で、<c>ITimelineService.GetServerTimeAsync</c> で測る。
+    /// 右辺の括弧はクロック差で、<c>ITimelineService.GetServerTimeAsync</c> で 1 回測って求める。
+    /// クライアントもサーバーも NTP で時刻が合っている前提を置いているため、この形にしている。
     /// <c>Playing</c> が false のときは基準時刻が無いため、この式は成立しない。
     /// 停止中も <c>ScheduledAction</c> は残る（再生し直せば同じ相対位置で発火する）ので、
     /// 受信側は Playing が false になった時点で予約タイマーを取り消し、
