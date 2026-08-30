@@ -8,6 +8,9 @@ namespace Livisor.Server.Domain.ValueObject;
 // 同じ扱いの RoomState / ScheduledAction も等価性は未実装。値で比べたくなったら先に実装する。
 public sealed class Transport
 {
+    // 現状は StartedAtUnixMs の有無と等価で、値としては冗長。
+    // それでも持たせているのは、遅延参加者への対応など今後使う可能性があるため。
+    // 使わないままでも実害が無いという判断で残している（2026-08-29）。
     public bool Playing { get; }
 
     // 再生を開始したサーバー時刻(UTC ミリ秒)。停止中は null。
