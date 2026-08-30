@@ -14,8 +14,8 @@ namespace Livisor.Server.Presentation.Hubs;
 // Presentation 層: タイムライン配信用の StreamingHub。
 // クライアントとの通信境界として、リクエストの受け口・DTO↔Domain 変換・通信エラー変換を担う。
 // 業務ルール(不変条件)は Domain、ユースケース調停は Application に委譲する。
-[TimelineHubLoggingFilter]
-public class TimelineHub : StreamingHubBase<ITimelineHub, ITimelineHubReceiver>, ITimelineHub
+[HubLoggingFilter]
+public class TimelineHub : StreamingHubBase<ITimelineHub, ITimelineHubReceiver>, ITimelineHub, IRoomScopedHub
 {
     private readonly JoinRoomUseCase _joinRoom;
     private readonly BroadcastTimelineUseCase _broadcast;
@@ -24,8 +24,8 @@ public class TimelineHub : StreamingHubBase<ITimelineHub, ITimelineHubReceiver>,
     private IGroup<ITimelineHubReceiver>? _group;
     private RoomId? _roomId; // 未参加なら null
 
-    // TimelineHubLoggingFilter がログスコープに使うために公開する。
-    internal RoomId? RoomId => _roomId;
+    // HubLoggingFilter がログスコープに使うために公開する。
+    RoomId? IRoomScopedHub.RoomId => _roomId;
 
     public TimelineHub(JoinRoomUseCase joinRoom, BroadcastTimelineUseCase broadcast, ILogger<TimelineHub> logger)
     {

@@ -4,15 +4,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Livisor.Server.Presentation.Hubs;
 
-// TimelineHub の全メソッド呼び出しに ConnectionId(・呼び出し時点で確定済みなら RoomId)を
+// Hub の全メソッド呼び出しに ConnectionId(・呼び出し時点で確定済みなら RoomId)を
 // ログスコープとして自動付与する。OnConnected/OnDisconnected はこのフィルタを通らないため対象外。
-// 将来的にHubが増えた場合はさらに汎化させるかも
-public class TimelineHubLoggingFilterAttribute : StreamingHubFilterAttribute
+// ログのカテゴリは Hub の実型から作るため、Hub が増えてもそのまま使える。
+public class HubLoggingFilterAttribute : StreamingHubFilterAttribute
 {
     public override async ValueTask Invoke(StreamingHubContext context, Func<StreamingHubContext, ValueTask> next)
     {
-        var logger = context.ServiceContext.ServiceProvider.GetRequiredService<ILogger<TimelineHub>>();
-        var roomId = (context.HubInstance as TimelineHub)?.RoomId;
+        var loggerFactory = context.ServiceContext.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger(context.HubInstance.GetType());
+        var roomId = (context.HubInstance as IRoomScopedHub)?.RoomId;
 
         using var scope = roomId is null
             ? logger.LogScope(("ConnectionId", context.ConnectionId))
