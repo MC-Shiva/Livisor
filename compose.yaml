@@ -1,0 +1,12 @@
+# docker compose up -d --build で、サーバーをビルドして 5210 番で常駐させる。
+# コンテナ内は 8080 で待つ（Dockerfile の EXPOSE 8080）。落ちても EC2 を再起動しても自動で上がる。
+services:
+  server:
+    build: .
+    image: livisor-server
+    container_name: livisor-server
+    ports:
+      - "5210:8080"
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
