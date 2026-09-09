@@ -7,11 +7,13 @@ namespace Livisor.Server.Domain.Cache;
 // 実装は Infrastructure 層に置く。
 public interface IRoomCache
 {
-    // 現在配信中のタイムラインを差し替え、差し替え後の Room を返す。room がなければ作る。
-    Room SetCurrentTimeline(RoomId roomId, Timeline timeline);
-
-    // Room を返す。なければ Current が未設定の Room。
+    // Room を返す。無ければ初期状態（停止中・未予約・状態なし）の Room。
     Room Get(RoomId roomId);
+
+    // Room を更新し、更新後の Room を返す。room が無ければ初期状態から作って更新する。
+    // 更新は不変な Room の差し替えで表す。同時呼び出しでは update が再試行されうるため、
+    // update には副作用を持たせない。
+    Room Update(RoomId roomId, Func<Room, Room> update);
 
     void Remove(RoomId roomId);
 }
