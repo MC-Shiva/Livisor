@@ -5,7 +5,6 @@ namespace Livisor.Server.Domain.ValueObject;
 // 予約アクション（検証済み）。Issue #17 の決定により、room ごとに最大 1 件だけ持つ。
 // Offset は絶対時刻ではなく再生開始からの相対時間なので、再生をやり直しても同じ位置で発火する。
 // ActionType は「操作種別の共有語彙」としてワイヤ契約(Shared)のものを再利用する。
-// デフォルト演出（Issue #22）も起動時にこの検証を通す（ScheduledActionMapper.ToDomain 経由）。
 public sealed class ScheduledAction
 {
     public PlaybackTime Offset { get; }

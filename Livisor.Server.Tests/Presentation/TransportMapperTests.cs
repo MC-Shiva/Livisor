@@ -2,7 +2,7 @@ using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
 using Livisor.Server.Presentation.Mapping;
 using Livisor.Shared.Common;
-using Livisor.Shared.DTO;
+using MessagePack;
 
 namespace Livisor.Server.Tests.Presentation;
 
@@ -47,34 +47,30 @@ public class TransportMapperTests
     }
 
     [Fact]
-    public void ToDto_AnyRoom_CarriesDefaultActions()
+    public void ToDto_AnyRoom_DoesNotSendPresetActions()
     {
-        // デフォルト演出は room の状態ではなく固定の定義なので、どの room でも同じ内容が載る。
         var dto = TransportMapper.ToDto(NewRoom(), 1_000);
 
-        var expected = DefaultActionSet.Create();
-        Assert.Equal(
-            expected.Select(a => (a.Time, a.Action, a.Value)),
-            dto.DefaultActions.Select(a => (a.Time, a.Action, a.Value)));
+        var reader = new MessagePackReader(MessagePackSerializer.Serialize(dto));
+        Assert.Equal(4, reader.ReadArrayHeader());
     }
 
     [Fact]
-    public void ToDto_CalledTwice_DoesNotShareDefaultActions()
+    public void ToDto_CalledTwice_DoesNotShareScheduledAction()
     {
-        // DTO は可変。配信ごとに別インスタンスを作り、受信側や別 room の書き換えが混ざらないようにする。
-        var first = TransportMapper.ToDto(NewRoom(), 1_000);
-        var second = TransportMapper.ToDto(NewRoom(), 1_000);
+        var room = NewRoom().Schedule(new ScheduledAction(PlaybackTime.Parse("00:00:05:00"), ActionType.Effect, EffectNames.ConfettiOff));
+        var first = TransportMapper.ToDto(room, 1_000);
+        first.ScheduledAction!.Value = "modified";
+        var second = TransportMapper.ToDto(room, 1_000);
 
-        Assert.NotSame(first.DefaultActions, second.DefaultActions);
-        foreach (var pair in first.DefaultActions.Zip(second.DefaultActions))
-            Assert.NotSame(pair.First, pair.Second);
+        Assert.NotSame(first.ScheduledAction, second.ScheduledAction);
+        Assert.Equal(EffectNames.ConfettiOff, second.ScheduledAction!.Value.Text);
     }
 
     [Fact]
-    public void ToDto_ScheduleAndCancel_KeepDefaultsSeparateFromReservation()
+    public void ToDto_ScheduleAndCancel_OnlyChangesReservation()
     {
         var room = NewRoom().Play(1_000);
-        var defaults = TransportMapper.ToDto(room, 1_000).DefaultActions;
         var action = new ScheduledAction(PlaybackTime.Parse("00:01:30:00"), ActionType.Effect, EffectNames.SilverStreamer);
 
         room = room.Schedule(action);
@@ -90,8 +86,9 @@ public class TransportMapperTests
         var cancelled = TransportMapper.ToDto(room.CancelSchedule(), 101_000);
         Assert.Null(cancelled.ScheduledAction);
         foreach (var state in new[] { scheduled, past, cancelled })
-            Assert.Equal(
-                defaults.Select(a => (a.Time, a.Action, a.Value)),
-                state.DefaultActions.Select(a => (a.Time, a.Action, a.Value)));
+        {
+            Assert.True(state.Playing);
+            Assert.Equal(1_000, state.StartedAtServerMs);
+        }
     }
 }
