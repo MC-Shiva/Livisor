@@ -20,10 +20,13 @@ public class DefaultActionSetTests
     public void Create_EffectActions_UseKnownEffectNames()
     {
         // 知らない名前はクライアントが無視するため、定義側で既知の名前に限る。
-        var known = new[] { EffectNames.Lightning, EffectNames.SilverStreamer };
+        var known = new[] { EffectNames.ConfettiOn, EffectNames.ConfettiOff, EffectNames.Lightning, EffectNames.SilverStreamer };
 
         foreach (var action in DefaultActionSet.Create().Where(a => a.Action == ActionType.Effect))
             Assert.Contains(action.Value.Text, known);
+
+        foreach (var name in known)
+            Assert.Contains(DefaultActionSet.Create(), a => a.Action == ActionType.Effect && a.Value.Text == name);
     }
 
     [Fact]
