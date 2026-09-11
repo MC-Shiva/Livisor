@@ -3,7 +3,9 @@ using Livisor.Server.Domain.Cache;
 using Livisor.Server.Domain.Time;
 using Livisor.Server.Infrastructure;
 using Livisor.Server.Logging;
+using Livisor.Server.Presentation.Mapping;
 using Livisor.Server.Presentation.Providers;
+using Livisor.Shared.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,13 @@ builder.Services.AddSingleton<RoomGroupProvider>();
 builder.Services.AddTransient<RoomUseCase>();
 
 var app = builder.Build();
+
+// Shared のデフォルト演出を起動時に検証する。不正な定義なら配信を始めない。
+// 配信時の DTO は TransportMapper が同じ定義から生成する。
+var defaultActions = DefaultActionSet.Create();
+foreach (var action in defaultActions)
+    ScheduledActionMapper.ToDomain(action);
+app.Logger.LogInfo("loaded default actions. ", ("Count", defaultActions.Length));
 
 // Configure the HTTP request pipeline.
 app.MapMagicOnionService();
