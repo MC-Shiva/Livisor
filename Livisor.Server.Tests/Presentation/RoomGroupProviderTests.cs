@@ -16,6 +16,8 @@ public class RoomGroupProviderTests
         public void OnStateChanged(RoomStatePatch patch) => StateCount++;
 
         public void OnTransportChanged(TransportState state) => TransportCount++;
+
+        public void OnEffectTriggered(EffectCommand effect) { }
     }
 
     private static RoomGroupProvider Create()
