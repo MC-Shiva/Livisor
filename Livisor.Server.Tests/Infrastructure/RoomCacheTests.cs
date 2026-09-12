@@ -13,6 +13,25 @@ public class RoomCacheTests(ITestOutputHelper output)
         => new(PlaybackTime.Parse(offset), ActionType.VolumeChange, 10);
 
     [Fact]
+    public void DefaultsAndConcurrentAdditions_AreRetainedAndIsolatedByRoom()
+    {
+        var defaults = new[] { BuildAction("00:00:01:00") };
+        var cache = new RoomCache(defaults);
+        var id = RoomId.Create("queue");
+        var initial = cache.Get(id);
+        Parallel.For(0, 100, _ => cache.Update(id, room => room.Schedule(BuildAction())));
+        Assert.Single(initial.DefaultActions);
+        Assert.Empty(initial.ScheduledActions);
+        Assert.Equal(100, cache.Get(id).ScheduledActions.Count);
+        Assert.Empty(cache.Get(RoomId.Create("other")).ScheduledActions);
+        cache.Update(id, room => room.CancelSchedule());
+        Assert.Single(cache.Get(id).DefaultActions);
+        Assert.Empty(cache.Get(id).ScheduledActions);
+        defaults[0] = BuildAction("00:00:09:00");
+        Assert.Equal("00:00:01:00", cache.Get(id).DefaultActions[0].Offset.ToRawString());
+    }
+
+    [Fact]
     public void RoomCache_BasicOperations()
     {
         var room1 = RoomId.Create("room1");
@@ -20,7 +39,7 @@ public class RoomCacheTests(ITestOutputHelper output)
 
         // 存在しない room は初期状態（停止中・未予約）で返る
         Assert.False(_cache.Get(room1).Transport.Playing);
-        Assert.Null(_cache.Get(room1).Scheduled);
+        Assert.Empty(_cache.Get(room1).ScheduledActions);
 
         // Update すると更新後の Room が保持される
         _cache.Update(room1, room => room.Play(1_000));
@@ -31,7 +50,7 @@ public class RoomCacheTests(ITestOutputHelper output)
         var action = BuildAction();
         _cache.Update(room1, room => room.Schedule(action));
         Assert.True(_cache.Get(room1).Transport.Playing);
-        Assert.Same(action, _cache.Get(room1).Scheduled);
+        Assert.Same(action, Assert.Single(_cache.Get(room1).ScheduledActions));
 
         // 別の room は独立している
         Assert.False(_cache.Get(room2).Transport.Playing);

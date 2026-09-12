@@ -2,7 +2,7 @@ using Livisor.Server.Domain.Entity;
 using Livisor.Server.Domain.ValueObject;
 using Livisor.Server.Presentation.Mapping;
 using Livisor.Shared.Common;
-using MessagePack;
+using Livisor.Shared.DTO;
 
 namespace Livisor.Server.Tests.Presentation;
 
@@ -20,7 +20,7 @@ public class TransportMapperTests
         Assert.False(dto.Playing);
         Assert.Equal(0, dto.StartedAtServerMs);
         Assert.Equal(1_700_000_000_000, dto.ServerTimeMs);
-        Assert.Null(dto.ScheduledAction);
+        Assert.Empty(dto.Actions);
     }
 
     [Fact]
@@ -40,19 +40,25 @@ public class TransportMapperTests
 
         var dto = TransportMapper.ToDto(room, 1_000);
 
-        Assert.NotNull(dto.ScheduledAction);
-        Assert.Equal("00:00:05:00", dto.ScheduledAction!.Time);
-        Assert.Equal(ActionType.VolumeChange, dto.ScheduledAction.Action);
-        Assert.Equal(10, dto.ScheduledAction.Value.Number);
+        Assert.Single(dto.Actions);
+        Assert.Equal("00:00:05:00", dto.Actions[0].Time);
+        Assert.Equal(ActionType.VolumeChange, dto.Actions[0].Action);
+        Assert.Equal(10, dto.Actions[0].Value.Number);
     }
 
     [Fact]
-    public void ToDto_AnyRoom_DoesNotSendPresetActions()
+    public void ToDto_MergesDefaultsAndAdditionsInTimeOrder_AndCancelKeepsDefaults()
     {
-        var dto = TransportMapper.ToDto(NewRoom(), 1_000);
+        var defaults = DefaultActionSet.Create().Select(ScheduledActionMapper.ToDomain).ToArray();
+        var room = Room.Create(RoomId.Create("room1"), defaults)
+            .Schedule(new ScheduledAction(PlaybackTime.Parse("00:01:00:00"), ActionType.Effect, EffectNames.ConfettiOff),
+                new ScheduledAction(PlaybackTime.Parse("00:00:05:00"), ActionType.Effect, EffectNames.SilverStreamer));
+        var dto = TransportMapper.ToDto(room, 1_000);
 
-        var reader = new MessagePackReader(MessagePackSerializer.Serialize(dto));
-        Assert.Equal(4, reader.ReadArrayHeader());
+        Assert.Equal(defaults.Length + 2, dto.Actions.Length);
+        Assert.Equal(new[] { EffectNames.ConfettiOn, EffectNames.SilverStreamer, EffectNames.Lightning, EffectNames.ConfettiOff },
+            dto.Actions.Take(4).Select(a => a.Value.Text));
+        Assert.Equal(defaults.Length, TransportMapper.ToDto(room.CancelSchedule(), 2_000).Actions.Length);
     }
 
     [Fact]
@@ -60,11 +66,11 @@ public class TransportMapperTests
     {
         var room = NewRoom().Schedule(new ScheduledAction(PlaybackTime.Parse("00:00:05:00"), ActionType.Effect, EffectNames.ConfettiOff));
         var first = TransportMapper.ToDto(room, 1_000);
-        first.ScheduledAction!.Value = "modified";
+        first.Actions[0].Value = "modified";
         var second = TransportMapper.ToDto(room, 1_000);
 
-        Assert.NotSame(first.ScheduledAction, second.ScheduledAction);
-        Assert.Equal(EffectNames.ConfettiOff, second.ScheduledAction!.Value.Text);
+        Assert.NotSame(first.Actions[0], second.Actions[0]);
+        Assert.Equal(EffectNames.ConfettiOff, second.Actions[0].Value.Text);
     }
 
     [Fact]
@@ -75,16 +81,16 @@ public class TransportMapperTests
 
         room = room.Schedule(action);
         var scheduled = TransportMapper.ToDto(room, 2_000);
-        Assert.Equal("00:01:30:00", scheduled.ScheduledAction!.Time);
-        Assert.Equal(EffectNames.SilverStreamer, scheduled.ScheduledAction.Value.Text);
+        Assert.Equal("00:01:30:00", scheduled.Actions[0].Time);
+        Assert.Equal(EffectNames.SilverStreamer, scheduled.Actions[0].Value.Text);
 
         // 時刻を過ぎても元の予約を配信する。受信後の即時実行はクライアントの責務。
         var past = TransportMapper.ToDto(room, 100_000);
-        Assert.Equal(scheduled.ScheduledAction.Time, past.ScheduledAction!.Time);
+        Assert.Equal(scheduled.Actions[0].Time, past.Actions[0].Time);
         Assert.True(past.ServerTimeMs - past.StartedAtServerMs > action.Offset.TotalCentiseconds * 10L);
 
         var cancelled = TransportMapper.ToDto(room.CancelSchedule(), 101_000);
-        Assert.Null(cancelled.ScheduledAction);
+        Assert.Empty(cancelled.Actions);
         foreach (var state in new[] { scheduled, past, cancelled })
         {
             Assert.True(state.Playing);

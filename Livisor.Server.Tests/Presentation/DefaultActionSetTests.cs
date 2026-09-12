@@ -4,7 +4,7 @@ using Livisor.Shared.DTO;
 
 namespace Livisor.Server.Tests.Presentation;
 
-// Shared に置く Demo 専用の事前定義（Issue #22）の検証。
+// Shared に置く Server と Demo 共通の事前定義（Issue #22）の検証。
 // 定義は C# なので型は合うが、時刻の書式・演出名の妥当性はここで固定する（並び順は問わない。クライアントが並べ替える）。
 // 共通の TimelineAction 形式に従うことを、予約アクションと同じ検証で確認する。
 public class DefaultActionSetTests

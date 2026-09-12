@@ -24,7 +24,7 @@
 |---|---|---|
 | Unary サービス | 1 回の要求に 1 回の応答を返す通信。再生・停止・スケジューリングの要求を受け付ける。要求を受けずにクライアントへ通知する用途には使わない | `ITimelineService`、`TimelineService` |
 | StreamingHub | 接続を保ち、サーバーとクライアントが互いにデータを送る通信。このシステムでは、状態の差分（更新対象の項目）とトランスポート（再生状態）をサーバーから通知する経路として使う | `IRoomStateHub`、`RoomStateHub` |
-| スケジューリング | 「再生開始から相対時間 t 後にこのアクションを実行する」を登録すること。登録した 1 件を **予約アクション** と呼ぶ。登録は 1 回の操作で済むため、Unary サービスで受け付ける | `ITimelineService.ScheduleActionAsync`、`ScheduledAction` |
+| スケジューリング | 「曲の先頭から t 秒の位置でアクションを実行する」を登録すること。登録した 1 件を **予約アクション** と呼ぶ。登録は 1 回の操作で済むため、Unary サービスで受け付ける | `ITimelineService.ScheduleActionsAsync`、`ScheduledAction` |
 | 状態同期 | 心拍数・音量・照明の色など、変わり続ける値を同じ room の全員で共有すること。受信したらすぐ反映する。「即時反映」とも言う。厳密な同時再生までは意味しない | `IRoomStateHub`、`RoomState` |
 | 受信契約 | サーバーからの通知を受けたときに、クライアント側で動く処理の取り決め。状態の差分とトランスポートの 2 種類 | `IRoomStateHubReceiver.OnStateChanged` / `OnTransportChanged` |
 | 配信 | 同じ room の配信グループに参加している全接続へデータを届けること。会話では「ブロードキャスト」とも言う（同じ意味）。送信元の接続にも届く | `RoomGroupProvider.PublishState` / `PublishTransport` |
@@ -36,13 +36,13 @@
 |---|---|---|
 | トランスポート | 再生・停止の操作と、その再生状態。会話では「再生・停止」「再生状態」。`Transport` は「再生中かどうか」と「再生を開始したサーバー時刻」を持つ。通知用の `TransportState` は、この 2 項目にサーバー時刻と予約アクションを加えたもの。この実装では、再生位置を移動する操作（シーク）を提供しない | `Transport`（Domain）、`TransportState`（DTO）、`TransportMapper` |
 | 再生開始 | 再生を開始する操作。停止中なら、サーバーが再生開始時刻を決める（決定）。再生中に再度指示しても開始時刻は変わらない（実装判断） | `ITimelineService.PlayAsync`、`Transport.Start`、`Transport.Playing`（再生中は `true`） |
-| 停止 | 再生を止める操作。開始時刻は失われ、次の再生開始で新しい開始時刻になる。予約アクションは取り消さない。再び再生すると、同じ相対時間でクライアントが実行する（決定） | `ITimelineService.StopAsync`、`Transport.Stop` |
-| 相対時間 | 再生開始を `00:00:00:00` とした経過時間。表記は `HH:mm:ss:ff`（時:分:秒:センチ秒。センチ秒 = 100 分の 1 秒）。予約アクションの時刻はこれで指定する（決定） | `PlaybackTime`、`TimelineAction.Time` |
-| 予約アクション | スケジューリングで登録した 1 件。room ごとに最大 1 件で、新しく登録するとそれまでの 1 件を置き換える（決定）。予約アクションはクライアントが実行する | `ScheduledAction`（Domain）、`Room.Schedule` |
-| 予約の取消 | 予約アクションを取り消す操作。再生状態と状態同期は保つ | `ITimelineService.CancelScheduledActionAsync`、`Room.CancelSchedule` |
-| アクション | `TimelineAction` で表す操作の種類と値。`play` は真偽値（`true` = 再生、`false` = 停止）、`volumeChange` は整数。通常の音量操作は予約ではなく状態同期の `volume` で即時に反映する（決定）。`volumeChange` の予約は、再生開始から時間 t が経過したときに音量を変えるために使う | `TimelineAction`、`ActionType`、`ActionValue` |
-| 発火 | 再生中に、予約アクションの相対時間に達したときクライアントがそれを実行すること。送信時点の再生位置は `ServerTimeMs - StartedAtServerMs` で求める。待ち時間は、予約アクションの相対時間からこの再生位置を引く簡易計算で求める。この計算は通信の遅れを補正しない。遅延対策は今回扱わない（決定）。停止の通知を受けたらタイマーを取り消し、次の再生開始で設定し直す | （クライアント側。式は `TransportState` のコメント） |
-| 再生位置 | 再生開始からの経過時間。この実装では独立した項目として保持・送信しない。再生中は、送信時点の位置を `ServerTimeMs - StartedAtServerMs` で求める | `Transport.PositionMs`（テスト用）、`TransportState` |
+| 停止 | 再生を止める操作。開始時刻は失われ、次の再生開始で新しい開始時刻になる。予約アクションは取り消さない。LiveSceneは続きから再開し、未実行のアクションを曲の位置に合わせて実行する | `ITimelineService.StopAsync`、`Transport.Stop` |
+| 相対時間 | 曲の先頭を `00:00:00:00` とした再生位置。表記は `HH:mm:ss:ff`（時:分:秒:センチ秒。センチ秒 = 100 分の 1 秒）。予約アクションの時刻はこれで指定する（決定） | `PlaybackTime`、`TimelineAction.Time` |
+| 予約アクション | スケジューリングで登録した 1 件。roomごとのキューに追加する。デフォルト演出と追加予約を時刻順の一覧として配信する。予約アクションはクライアントが実行する | `ScheduledAction`（Domain）、`Room.Schedule` |
+| 予約の取消 | Adminの追加予約をすべて取り消す操作。デフォルト演出・再生状態・状態同期は保つ | `ITimelineService.CancelScheduledActionsAsync`、`Room.CancelSchedule` |
+| アクション | `TimelineAction` で表す操作の種類と値。`play` は真偽値（`true` = 再生、`false` = 停止）、`volumeChange` は整数。通常の音量操作は予約ではなく状態同期の `volume` で即時に反映する（決定）。`volumeChange` の予約は、曲の t 秒地点で音量を変えるために使う | `TimelineAction`、`ActionType`、`ActionValue` |
+| 発火 | Clientが曲の指定位置に達したアクションを実行すること。LiveSceneは音源の位置を使い、STOP／PLAYで実行済みを繰り返さない。音源がないClientは `(ServerTimeMs - StartedAtServerMs) / 1000` に受信後の実時間を加えた近似位置を使う。通信遅延は補正しない | `TimelineAction.Time`、`TransportState`（Client側の再生処理） |
+| 再生位置 | 曲の先頭からの位置。LiveSceneは音源から取得する。音源がないClientは、Serverの開始時刻からの経過時間で代用し、STOP／PLAY後は新しい開始時刻から数える | `TimelineAction.Time`、`TransportState` |
 
 ## 状態同期まわり
 

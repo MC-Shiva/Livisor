@@ -4,6 +4,8 @@ using Livisor.Server.Domain.Time;
 using Livisor.Server.Infrastructure;
 using Livisor.Server.Logging;
 using Livisor.Server.Presentation.Providers;
+using Livisor.Server.Presentation.Mapping;
+using Livisor.Shared.DTO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +16,8 @@ builder.Services.AddMagicOnion();
 
 // --- レイヤー配線（Composition Root）---
 // Infrastructure: room（Room集約）をメモリにキャッシュ。サーバー時刻の取得。
-builder.Services.AddSingleton<IRoomCache, RoomCache>();
+var defaultActions = DefaultActionSet.Create().Select(ScheduledActionMapper.ToDomain).ToArray();
+builder.Services.AddSingleton<IRoomCache>(new RoomCache(defaultActions));
 builder.Services.AddSingleton<IClock, SystemClock>();
 // Presentation: room ごとの配信グループ。Unary サービスと StreamingHub で共有する。
 builder.Services.AddSingleton<RoomGroupProvider>();

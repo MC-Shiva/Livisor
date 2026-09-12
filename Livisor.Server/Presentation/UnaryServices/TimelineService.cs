@@ -56,14 +56,16 @@ public class TimelineService : ServiceBase<ITimelineService>, ITimelineService
         return new(dto);
     }
 
-    public UnaryResult<TransportState> ScheduleActionAsync(string roomId, TimelineAction action)
+    public UnaryResult<TransportState> ScheduleActionsAsync(string roomId, TimelineAction[] actions)
     {
         var id = ParseRoomId(roomId);
 
-        ScheduledAction scheduled;
+        ScheduledAction[] scheduled;
         try
         {
-            scheduled = ScheduledActionMapper.ToDomain(action);
+            if (actions is null || actions.Length == 0)
+                throw new DomainException("scheduled actions must not be empty.");
+            scheduled = actions.Select(ScheduledActionMapper.ToDomain).ToArray();
         }
         catch (DomainException ex)
         {
@@ -72,11 +74,11 @@ public class TimelineService : ServiceBase<ITimelineService>, ITimelineService
         }
 
         var dto = CommitAndBroadcast(id, () => _room.Schedule(id, scheduled));
-        _logger.LogInfo("scheduled action. ", ("RoomId", id.Value), ("Offset", scheduled.Offset.ToRawString()), ("Action", scheduled.Action));
+        _logger.LogInfo("scheduled actions. ", ("RoomId", id.Value), ("Count", scheduled.Length));
         return new(dto);
     }
 
-    public UnaryResult<TransportState> CancelScheduledActionAsync(string roomId)
+    public UnaryResult<TransportState> CancelScheduledActionsAsync(string roomId)
     {
         var id = ParseRoomId(roomId);
         var dto = CommitAndBroadcast(id, () => _room.CancelSchedule(id));
