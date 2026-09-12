@@ -2,8 +2,8 @@ using Livisor.Shared.Common;
 
 namespace Livisor.Server.Domain.ValueObject;
 
-// 予約アクション（検証済み）。Issue #17 の決定により、room ごとに最大 1 件だけ持つ。
-// Offset は絶対時刻ではなく再生開始からの相対時間なので、再生をやり直しても同じ位置で発火する。
+// 演出キュー内のアクション（検証済み）。
+// Offset は曲の先頭からの位置。実行済みかどうかは Client が管理する。
 // ActionType は「操作種別の共有語彙」としてワイヤ契約(Shared)のものを再利用する。
 public sealed class ScheduledAction
 {
@@ -19,11 +19,17 @@ public sealed class ScheduledAction
         {
             ActionType.Play => ActionValueKind.Bool,
             ActionType.VolumeChange => ActionValueKind.Number,
+            ActionType.Effect => ActionValueKind.Text,
             _ => throw new DomainException($"unknown action type: {action}."),
         };
 
         if (value.Kind != expected)
             throw new DomainException($"action '{action}' must have a {expected} value, but was {value.Kind}.");
+
+        // 演出名が空だとクライアントが何も対応づけられない。名前が既知かどうかはクライアントが判断する
+        // （演出を増やすたびにサーバーを変えなくて済むようにするため）。
+        if (action == ActionType.Effect && string.IsNullOrWhiteSpace(value.Text))
+            throw new DomainException("effect name must not be empty.");
 
         Offset = offset;
         Action = action;

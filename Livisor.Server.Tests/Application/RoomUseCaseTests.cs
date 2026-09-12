@@ -97,19 +97,19 @@ public class RoomUseCaseTests
 
         var room = new RoomUseCase(cache, StubClock(1_000)).Schedule(RoomId, action);
 
-        Assert.Same(action, room.Scheduled);
+        Assert.Same(action, Assert.Single(room.ScheduledActions));
         cache.Received(1).Update(RoomId, Arg.Any<Func<Room, Room>>());
     }
 
     [Fact]
-    public void Schedule_ReplacesExistingAction()
+    public void Schedule_AppendsActions()
     {
-        // キューは最大1件。既存の予約は置き換える。
         var replacement = BuildAction("00:00:09:00");
 
         var room = Create(Room.Create(RoomId).Schedule(BuildAction("00:00:05:00"))).Schedule(RoomId, replacement);
 
-        Assert.Same(replacement, room.Scheduled);
+        Assert.Equal(2, room.ScheduledActions.Count);
+        Assert.Same(replacement, room.ScheduledActions[1]);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class RoomUseCaseTests
     {
         var room = Create(Room.Create(RoomId).Schedule(BuildAction())).CancelSchedule(RoomId);
 
-        Assert.Null(room.Scheduled);
+        Assert.Empty(room.ScheduledActions);
     }
 
     [Fact]
