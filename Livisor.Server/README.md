@@ -8,7 +8,7 @@ Livisorにおけるサーバー実装をおくリポジトリ
 
 ## 演出キュー
 
-Serverは起動時に`Livisor.Shared/DTO/DefaultActionSet.cs`を読み、roomごとのデフォルト演出に使います。
+Serverは起動時に`Livisor.Shared/Common/DefaultTimeline.cs`を読み、roomごとのデフォルト演出に使います。
 Adminの`ScheduleActionsAsync`は全行を検証してから追加予約へ加えます。
 `TransportState.Actions`には、デフォルト演出と追加予約を時刻順にまとめた一覧を配信します。
 同じ時刻ではデフォルト演出、追加予約の順です。

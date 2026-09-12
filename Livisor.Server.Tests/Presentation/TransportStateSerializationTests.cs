@@ -12,7 +12,7 @@ public class TransportStateSerializationTests
         var state = new TransportState
         {
             Playing = true, StartedAtServerMs = 1_000, ServerTimeMs = 2_000,
-            Actions = DefaultActionSet.Create().Concat(new[]
+            Actions = DefaultTimeline.Create().Concat(new[]
             {
                 new TimelineAction { Time = "00:00:10:00", Action = ActionType.VolumeChange, Value = 42 },
                 new TimelineAction { Time = "00:00:11:00", Action = ActionType.Play, Value = false },

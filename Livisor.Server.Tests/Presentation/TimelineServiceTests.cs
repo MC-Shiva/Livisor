@@ -20,7 +20,7 @@ public class TimelineServiceTests
     [Fact]
     public async Task ScheduleBatch_ValidatesAllBeforeAppending_AndCancelKeepsDefaults()
     {
-        var defaults = DefaultActionSet.Create().Select(ScheduledActionMapper.ToDomain).ToArray();
+        var defaults = DefaultTimeline.Create().Select(ScheduledActionMapper.ToDomain).ToArray();
         var cache = new RoomCache(defaults);
         var clock = Substitute.For<IClock>();
         clock.UtcNowUnixMs.Returns(1_000);

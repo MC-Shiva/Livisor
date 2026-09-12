@@ -49,7 +49,7 @@ public class TransportMapperTests
     [Fact]
     public void ToDto_MergesDefaultsAndAdditionsInTimeOrder_AndCancelKeepsDefaults()
     {
-        var defaults = DefaultActionSet.Create().Select(ScheduledActionMapper.ToDomain).ToArray();
+        var defaults = DefaultTimeline.Create().Select(ScheduledActionMapper.ToDomain).ToArray();
         var room = Room.Create(RoomId.Create("room1"), defaults)
             .Schedule(new ScheduledAction(PlaybackTime.Parse("00:01:00:00"), ActionType.Effect, EffectNames.ConfettiOff),
                 new ScheduledAction(PlaybackTime.Parse("00:00:05:00"), ActionType.Effect, EffectNames.SilverStreamer));
