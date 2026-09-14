@@ -45,7 +45,7 @@ public class PlaybackTimeTests
     [InlineData("")]
     public void Parse_NullOrEmpty_ThrowsDomainException(string? value)
     {
-        Assert.Throws<DomainException>(() => PlaybackTimeParser.Parse(value));
+        Assert.Throws<DomainException>(() => PlaybackTimeParser.Parse(value!));
     }
 
     [Theory]
@@ -80,7 +80,7 @@ public class PlaybackTimeTests
     [InlineData("24:00:00:00")]
     public void TryParse_InvalidValue_ReturnsFalse(string? value)
     {
-        Assert.False(PlaybackTime.TryParse(value, out _));
+        Assert.False(PlaybackTime.TryParse(value!, out _));
     }
 
     // --- TotalSeconds:正常系 ---

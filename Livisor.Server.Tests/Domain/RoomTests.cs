@@ -22,7 +22,7 @@ public class RoomTests
 
         Assert.Equal("room1", room.Id.Value);
         Assert.False(room.Transport.Playing);
-        Assert.Null(room.Scheduled);
+        Assert.Empty(room.ScheduledActions);
         Assert.Empty(room.State.Entries);
     }
 
@@ -49,7 +49,7 @@ public class RoomTests
             .ApplyState(BuildState(RoomStateKeys.HeartRate, 80))
             .Play(1_000);
 
-        Assert.NotNull(room.Scheduled);
+        Assert.Single(room.ScheduledActions);
         Assert.Equal(80, room.State.Entries[RoomStateKeys.HeartRate].Number);
     }
 
@@ -62,19 +62,18 @@ public class RoomTests
         var room = NewRoom().Schedule(action).Play(1_000).Stop();
 
         Assert.False(room.Transport.Playing);
-        Assert.Same(action, room.Scheduled);
+        Assert.Same(action, Assert.Single(room.ScheduledActions));
     }
 
     [Fact]
-    public void Schedule_ReplacesPreviousAction()
+    public void Schedule_AppendsActions()
     {
-        // キューは最大1件。新しい予約は前の予約を置き換える。
         var first = BuildAction("00:00:05:00");
         var second = BuildAction("00:00:09:00");
 
         var room = NewRoom().Schedule(first).Schedule(second);
 
-        Assert.Same(second, room.Scheduled);
+        Assert.Equal(new[] { first, second }, room.ScheduledActions);
     }
 
     [Fact]
@@ -88,7 +87,7 @@ public class RoomTests
     {
         var room = NewRoom().Schedule(BuildAction()).CancelSchedule();
 
-        Assert.Null(room.Scheduled);
+        Assert.Empty(room.ScheduledActions);
     }
 
     [Fact]

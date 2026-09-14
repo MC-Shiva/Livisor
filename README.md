@@ -1,8 +1,6 @@
-## Livisor
-Livisorのリポジトリ
+# Livisor
 
-基本的にLivisor.Client、Livisor.ServerのREADME.mdに詳しいことを書くようにしています。
+Unityクライアント・Adminと、通信サーバーの開発リポジトリです。
 
-## サーバーの起動方法
-
-[サーバーの起動方法はこちら](./Livisor.Server/Docs/make.md)
+- [Unityクライアント・Adminの使い方](./Livisor.Client/README.md)
+- [サーバーの起動・テスト・実装](./Livisor.Server/README.md)

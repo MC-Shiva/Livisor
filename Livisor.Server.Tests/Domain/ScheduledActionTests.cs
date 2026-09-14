@@ -61,4 +61,28 @@ public class ScheduledActionTests
         Assert.Throws<DomainException>(
             () => new ScheduledAction(PlaybackTime.Parse("00:00:05:00"), (ActionType)999, true));
     }
+
+    [Fact]
+    public void Constructor_EffectWithText_KeepsEffectName()
+    {
+        var action = new ScheduledAction(PlaybackTime.Parse("00:01:00:00"), ActionType.Effect, EffectNames.Lightning);
+
+        Assert.Equal(ActionType.Effect, action.Action);
+        Assert.Equal(EffectNames.Lightning, action.Value.Text);
+    }
+
+    [Fact]
+    public void Constructor_EffectWithNumber_ThrowsDomainException()
+    {
+        Assert.Throws<DomainException>(
+            () => new ScheduledAction(PlaybackTime.Parse("00:01:00:00"), ActionType.Effect, 1));
+    }
+
+    [Fact]
+    public void Constructor_EffectWithEmptyText_ThrowsDomainException()
+    {
+        // 演出名が空だとクライアントが何も対応づけられない。
+        Assert.Throws<DomainException>(
+            () => new ScheduledAction(PlaybackTime.Parse("00:01:00:00"), ActionType.Effect, " "));
+    }
 }

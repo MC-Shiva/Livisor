@@ -38,11 +38,11 @@ public sealed class RoomUseCase
         return _cache.Update(roomId, room => room.Play(startedAt));
     }
 
-    // 再生を停止する。予約は取り消さない（再生し直せば同じ相対位置で発火する）。
+    // 再生を停止する。演出キューは保持する。
     public Room Stop(RoomId roomId) => _cache.Update(roomId, room => room.Stop());
 
-    // 予約を1件だけ登録する。既にあれば置き換える。
-    public Room Schedule(RoomId roomId, ScheduledAction action) => _cache.Update(roomId, room => room.Schedule(action));
+    // 検証済みの予約をまとめて追加する。
+    public Room Schedule(RoomId roomId, params ScheduledAction[] actions) => _cache.Update(roomId, room => room.Schedule(actions));
 
     // 予約を取り消す。
     public Room CancelSchedule(RoomId roomId) => _cache.Update(roomId, room => room.CancelSchedule());

@@ -2,59 +2,58 @@ using Livisor.Server.Domain.ValueObject;
 
 namespace Livisor.Server.Domain.Entity;
 
-// 配信の集約ルート。識別子(RoomId)を持ち、room 単位で次の3つを保持する。
-//   - Transport : 再生中かどうかと再生開始時刻。予約アクションの発火基準になる。
-//   - Scheduled : 予約アクション。Issue #17 の決定によりキューは最大1件。
-//   - State     : 心拍数や音量など、同期し続ける値。
-// 不変にして更新のたびに新インスタンスを返す設計にすることで、並行アクセス時のロックを
-// Domain に持ち込まず、Infrastructure 側（ConcurrentDictionary.AddOrUpdate の再試行）に任せる。
+// room ごとの再生状態・デフォルト演出・追加予約・同期値を保持する。
+// 更新は新しい Room を返し、RoomCache の並行更新で元の状態を書き換えない。
 public sealed class Room
 {
     public RoomId Id { get; }
-
     public Transport Transport { get; }
-
-    // 予約アクション。未予約なら null。
-    public ScheduledAction? Scheduled { get; }
-
+    public IReadOnlyList<ScheduledAction> DefaultActions { get; }
+    public IReadOnlyList<ScheduledAction> ScheduledActions { get; }
     public RoomState State { get; }
 
-    private Room(RoomId id, Transport transport, ScheduledAction? scheduled, RoomState state)
+    private Room(RoomId id, Transport transport, IReadOnlyList<ScheduledAction> defaults,
+        IReadOnlyList<ScheduledAction> scheduled, RoomState state)
     {
         Id = id;
         Transport = transport;
-        Scheduled = scheduled;
+        DefaultActions = defaults;
+        ScheduledActions = scheduled;
         State = state;
     }
 
-    // 停止中・未予約・状態なしの Room を作る。
-    public static Room Create(RoomId id)
+    public static Room Create(RoomId id, params ScheduledAction[] defaults)
     {
         if (id is null)
             throw new DomainException("roomId must not be null.");
-
-        return new Room(id, Transport.Stopped, null, RoomState.Empty);
+        ValidateActions(defaults);
+        return new Room(id, Transport.Stopped, Array.AsReadOnly(defaults.ToArray()),
+            Array.Empty<ScheduledAction>(), RoomState.Empty);
     }
 
-    // 再生を開始した新しい Room を返す。予約と状態は引き継ぐ。
-    // すでに再生中なら開始時刻は動かないため、渡した値は無視される。
-    public Room Play(long startedAtUnixMs) => new(Id, Transport.Start(startedAtUnixMs), Scheduled, State);
+    public Room Play(long startedAtUnixMs)
+        => new(Id, Transport.Start(startedAtUnixMs), DefaultActions, ScheduledActions, State);
 
-    // 再生を停止した新しい Room を返す。予約は取り消さない（再生し直せば同じ相対位置で発火する）。
-    public Room Stop() => new(Id, Transport.Stop(), Scheduled, State);
+    public Room Stop() => new(Id, Transport.Stop(), DefaultActions, ScheduledActions, State);
 
-    // 予約アクションを差し替えた新しい Room を返す。
-    public Room Schedule(ScheduledAction action)
+    // 既存の予約を残して追加する。入力配列は保持せず、Room 内では読み取り専用にする。
+    public Room Schedule(params ScheduledAction[] actions)
     {
-        if (action is null)
-            throw new DomainException("scheduled action must not be null.");
-
-        return new Room(Id, Transport, action, State);
+        ValidateActions(actions);
+        return new Room(Id, Transport, DefaultActions,
+            Array.AsReadOnly(ScheduledActions.Concat(actions).ToArray()), State);
     }
 
-    // 予約アクションを取り消した新しい Room を返す。
-    public Room CancelSchedule() => Scheduled is null ? this : new Room(Id, Transport, null, State);
+    // Admin が追加した予約だけを取り消す。デフォルト演出は残す。
+    public Room CancelSchedule() => ScheduledActions.Count == 0 ? this
+        : new Room(Id, Transport, DefaultActions, Array.Empty<ScheduledAction>(), State);
 
-    // 状態差分を重ねた新しい Room を返す。
-    public Room ApplyState(RoomState patch) => new(Id, Transport, Scheduled, State.Merge(patch));
+    public Room ApplyState(RoomState patch)
+        => new(Id, Transport, DefaultActions, ScheduledActions, State.Merge(patch));
+
+    private static void ValidateActions(ScheduledAction[] actions)
+    {
+        if (actions is null || actions.Any(action => action is null))
+            throw new DomainException("scheduled actions must not be null or contain null.");
+    }
 }

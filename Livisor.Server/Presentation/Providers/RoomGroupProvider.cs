@@ -86,6 +86,9 @@ public sealed class RoomGroupProvider
     public TransportState PublishTransport(RoomId roomId, Func<TransportState> commit)
         => Publish(roomId, commit, static (receiver, state) => receiver.OnTransportChanged(state));
 
+    public void PublishEffect(RoomId roomId, Func<EffectCommand> validate)
+        => Publish(roomId, validate, static (receiver, effect) => receiver.OnEffectTriggered(effect));
+
     private TResult Publish<TResult>(RoomId roomId, Func<TResult> commit, Action<IRoomStateHubReceiver, TResult> send)
     {
         var name = GroupName(roomId);
