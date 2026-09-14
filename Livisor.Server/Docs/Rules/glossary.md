@@ -26,9 +26,11 @@
 | StreamingHub | 接続を保ち、サーバーとクライアントが互いにデータを送る通信。このシステムでは、状態の差分（更新対象の項目）とトランスポート（再生状態）をサーバーから通知する経路として使う | `IRoomStateHub`、`RoomStateHub` |
 | スケジューリング | 「曲の先頭から t 秒の位置でアクションを実行する」を登録すること。登録した 1 件を **予約アクション** と呼ぶ。登録は 1 回の操作で済むため、Unary サービスで受け付ける | `ITimelineService.ScheduleActionsAsync`、`ScheduledAction` |
 | 状態同期 | 心拍数・音量・照明の色など、変わり続ける値を同じ room の全員で共有すること。受信したらすぐ反映する。「即時反映」とも言う。厳密な同時再生までは意味しない | `IRoomStateHub`、`RoomState` |
-| 受信契約 | サーバーからの通知を受けたときに、クライアント側で動く処理の取り決め。状態の差分とトランスポートの 2 種類 | `IRoomStateHubReceiver.OnStateChanged` / `OnTransportChanged` |
+| 受信契約 | サーバーからの通知を受けたときに、クライアント側で動く処理の取り決め。状態の差分・トランスポート・即時演出の3種類 | `IRoomStateHubReceiver.OnStateChanged` / `OnTransportChanged` / `OnEffectTriggered` |
 | 配信 | 同じ room の配信グループに参加している全接続へデータを届けること。会話では「ブロードキャスト」とも言う（同じ意味）。送信元の接続にも届く | `RoomGroupProvider.PublishState` / `PublishTransport` |
 | 配信グループ | 同じ room に StreamingHub で参加している接続の集まり。Unary サービスで受け付けた操作の結果も、この配信グループを通じて全接続に届ける | `RoomGroupProvider` |
+
+即時演出は`ITimelineService.FireEffectAsync`で受け付け、`OnEffectTriggered`で現在の参加者へ通知する。再生中のみ受け付け、予約キューや状態には保存しない。
 
 ## 再生まわり
 

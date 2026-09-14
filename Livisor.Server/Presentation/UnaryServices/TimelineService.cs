@@ -8,6 +8,7 @@ using Livisor.Server.Logging;
 using Livisor.Server.Presentation.Mapping;
 using Livisor.Server.Presentation.Providers;
 using Livisor.Shared.DTO;
+using Livisor.Shared.Common;
 using Livisor.Shared.UnaryServices;
 using MagicOnion;
 using MagicOnion.Server;
@@ -84,6 +85,32 @@ public class TimelineService : ServiceBase<ITimelineService>, ITimelineService
         var dto = CommitAndBroadcast(id, () => _room.CancelSchedule(id));
         _logger.LogInfo("cancelled scheduled action. ", ("RoomId", id.Value));
         return new(dto);
+    }
+
+    public UnaryResult FireEffectAsync(string roomId, EffectCommand effect)
+    {
+        var id = ParseRoomId(roomId);
+        if (effect is null)
+            throw new ReturnStatusException(StatusCode.InvalidArgument, "effect is required.");
+
+        var valid = effect.Name switch
+        {
+            EffectNames.Lightning => effect.Target is LightningTargets.UnityChan or LightningTargets.Audience or LightningTargets.Stage,
+            EffectNames.SilverStreamer or EffectNames.ConfettiOn or EffectNames.ConfettiOff => effect.Target == string.Empty,
+            _ => false,
+        };
+        if (!valid)
+            throw new ReturnStatusException(StatusCode.InvalidArgument, "invalid effect name or target.");
+
+        // STOPと同じ配信区間で再生状態を確認する。即時演出は保存しない。
+        _groups.PublishEffect(id, () =>
+        {
+            if (!_room.Get(id).Transport.Playing)
+                throw new ReturnStatusException(StatusCode.FailedPrecondition, "play before firing an effect.");
+            return effect;
+        });
+        _logger.LogInfo("triggered effect. ", ("RoomId", id.Value), ("Effect", effect.Name), ("Target", effect.Target));
+        return default;
     }
 
     private RoomId ParseRoomId(string roomId)
