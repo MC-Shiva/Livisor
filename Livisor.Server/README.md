@@ -1,10 +1,43 @@
-## Livisor.Server
-Livisorにおけるサーバー実装をおくリポジトリ
+# Livisor.Server
+
+Livisorの通信サーバーです。
+
+## ローカルでの起動・テスト
+
+コマンドはすべてリポジトリのルート（[makefile](../makefile)のあるディレクトリ）で実行します。
+普段の開発は.NETで起動します。Dockerイメージでの動作確認にはDockerを使います。
+
+| 起動方法 | 必要な環境 | コマンド | 同じPCからの接続先 |
+| --- | --- | --- | --- |
+| .NET | .NET SDK 10 | `make server/run` | `http://localhost:5136` |
+| Docker | 起動済みのDocker | `make docker/server/run` | `http://localhost:5210` |
+
+Dockerでの起動は、イメージのビルドも行います。ホストの5210番をコンテナの8080番へ転送します。
+同じPCのClient・Adminから接続する場合は、Unityの`Assets/Network/ServerConfig.asset`の接続先も表のURLに合わせます。
+
+### 停止
+
+どちらの起動方法もターミナルで前面実行します。`Ctrl+C`で停止します。
+Dockerのコンテナは停止時に削除されます。イメージは残ります。
+どちらもプロセス終了後やOS再起動後の自動起動は行いません。
+
+### ビルド・テスト
+
+Dockerイメージのビルドだけを行う場合:
+
+```sh
+make docker/server/build
+```
+
+.NET SDK 10を使ってテストする場合:
+
+```sh
+make dotnet/test
+```
 
 ## 実装について
 
-- [実装の規則について](./Docs/Rules)
-- [起動・テストの方法](./Docs/make.md)
+- [実装の規則・設計資料](./Docs/Rules)
 
 ## 演出キュー
 
@@ -25,7 +58,7 @@ DemoSceneは紙吹雪・銀テープをSharedコピーから、雷をClientのC#
 Sharedの変更後は親リポジトリで`make shared/sync`を実行し、Clientを再ビルドします。
 
 `dotnet test`でキューの追加・取消・並行更新とMessagePackの往復を検証します。
-Adminの入力方法とUnityの疎通テストは、Clientの[通信ガイド](../Livisor.Client/Docs/server-communication.md)を参照してください。
+Adminの入力方法とUnityの疎通テストは、Clientの[通信ガイド](https://github.com/MC-Shiva/Livisor.Client/blob/main/Docs/server-communication.md)を参照してください。
 
 ## 即時演出
 
