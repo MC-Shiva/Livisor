@@ -58,7 +58,7 @@ DemoSceneは紙吹雪・銀テープをSharedコピーから、雷をClientのC#
 Sharedの変更後は親リポジトリで`make shared/sync`を実行し、Clientを再ビルドします。
 
 `dotnet test`でキューの追加・取消・並行更新とMessagePackの往復を検証します。
-Adminの入力方法とUnityの疎通テストは、Clientの[通信ガイド](../Livisor.Client/Docs/server-communication.md)を参照してください。
+Adminの入力方法とUnityの疎通テストは、Clientの[通信ガイド](https://github.com/MC-Shiva/Livisor.Client/blob/main/Docs/server-communication.md)を参照してください。
 
 ## 即時演出
 
